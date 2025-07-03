@@ -12,17 +12,10 @@ import torch
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import AssetBaseCfg
-from isaaclab.controllers import DifferentialIKController, DifferentialIKControllerCfg
 from isaaclab.managers import SceneEntityCfg
-from isaaclab.markers import VisualizationMarkers
-from isaaclab.markers.config import FRAME_MARKER_CFG
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
 from isaaclab.utils import configclass
-from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
-from isaaclab.utils.math import subtract_frame_transforms
 
-from HumanoidRL.HumanoidRLPackage.HumanoidRLSetup.modelCfg.universal_robots import UR10_CFG
-from HumanoidRL.HumanoidRLPackage.HumanoidRLSetup.modelCfg.franka import FRANKA_PANDA_HIGH_PD_CFG
 from HumanoidRL.HumanoidRLPackage.HumanoidRLSetup.modelCfg.humanoid import HAND_CFG
 
 from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
@@ -50,20 +43,21 @@ class HandSceneCfg(InteractiveSceneCfg):
     # )
 
     robot = HAND_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-    # robot1 = UR10_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-    # robot = FRANKA_PANDA_HIGH_PD_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     
-    # robot = scene["robot"]
+    robot = scene["robot"]
 
-    # robot_entity_cfg = SceneEntityCfg("robot", joint_names=[".*"], body_names=["ee_link"])
-    # robot_entity_cfg = SceneEntityCfg("robot", joint_names=["panda_joint.*"], body_names=["panda_hand"])
+    robot_entity_cfg = SceneEntityCfg("robot", joint_names=[".*"], body_names=[".*"])
 
-    # robot_entity_cfg.resolve(scene)
+    robot_entity_cfg.resolve(scene)
 
     sim_dt = sim.get_physics_dt()
+
+    joint_position = robot.data.default_joint_pos.clone()
+    joint_vel = robot.data.default_joint_vel.clone()
+    robot.write_joint_state_to_sim(joint_position, joint_vel)
 
     while simulation_app.is_running():
 
@@ -71,6 +65,14 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         # print(joint_position)
         # joint_vel = robot.data.default_joint_vel.clone()
         # robot.write_joint_state_to_sim(joint_position, joint_vel)
+        
+        joint_position_list = [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]]
+        joint_position = torch.tensor(joint_position_list[0], device=sim.device)
+
+        robot.reset()
+        joint_pos_des = joint_position.unsqueeze(0)[:, robot_entity_cfg.joint_ids].clone()
+        robot.set_joint_position_target(joint_pos_des, joint_ids=robot_entity_cfg.joint_ids)
+        scene.write_data_to_sim()
 
         sim.step()
 
@@ -98,4 +100,4 @@ if __name__ == "__main__":
     simulation_app.close()
 
 
-# (env_isaaclab) hy@hy-LOQ-15IRX9:~/Downloads/Humanoid$ PYTHONPATH=$(pwd) /home/hy/IsaacLab/isaaclab.sh -p hand_test.py 
+# (env_isaaclab) hy@hy-LOQ-15IRX9:~/Downloads/Humanoid$ PYTHONPATH=$(pwd) /home/hy/IsaacLab/isaaclab.sh -p hand_test.py

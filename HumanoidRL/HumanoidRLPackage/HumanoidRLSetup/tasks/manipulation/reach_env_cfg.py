@@ -58,16 +58,79 @@ class CommandsCfg:
 
     ee_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
-        body_name=MISSING,
+        body_name="TIP_B_1", # end_effector name
+        resampling_time_range=(4.0, 4.0),
+        debug_vis=True,
+        ranges=mdp.UniformPoseCommandCfg.Ranges( # within task space of finger
+            pos_x=(0.07346, 0.07346),
+            pos_y=(0.13, 0.1455),
+            pos_z=(0.09, 0.1005),
+            # no rotational variation
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    ee_pose_2 = mdp.UniformPoseCommandCfg(
+        asset_name="robot",
+        body_name="TIP_B_2",
         resampling_time_range=(4.0, 4.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.35, 0.65),
-            pos_y=(-0.2, 0.2),
-            pos_z=(0.15, 0.5),
+            pos_x=(0.04746, 0.04746),
+            # pos_y=(0.135, 0.14),
+            pos_y=(0.15406, 0.15558),
+            # pos_z=(0.09, 0.136),
+            pos_z=(0.098, 0.10058),
             roll=(0.0, 0.0),
-            pitch=MISSING,  # depends on end-effector axis
-            yaw=(-3.14, 3.14),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    ee_pose_3 = mdp.UniformPoseCommandCfg(
+        asset_name="robot",
+        body_name="TIP_B_3",
+        resampling_time_range=(4.0, 4.0),
+        debug_vis=True,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(0.01996, 0.01996),
+            pos_y=(0.134, 0.145),
+            pos_z=(0.09, 0.11),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    ee_pose_4 = mdp.UniformPoseCommandCfg(
+        asset_name="robot",
+        body_name="TIP_B_4",
+        resampling_time_range=(4.0, 4.0),
+        debug_vis=True,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(-0.00754, -0.00754),
+            pos_y=(0.119, 0.13),
+            pos_z=(0.09, 0.1),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
+        ),
+    )
+
+    ee_pose_5 = mdp.UniformPoseCommandCfg(
+        asset_name="robot",
+        body_name="TIP_B_5",
+        resampling_time_range=(4.0, 4.0),
+        debug_vis=True,
+        ranges=mdp.UniformPoseCommandCfg.Ranges(
+            pos_x=(0.0869, 0.0869),
+            pos_y=(0.04, 0.052),
+            pos_z=(0.17, 0.17248),
+            roll=(0.0, 0.0),
+            pitch=(0.0, 0.0),
+            yaw=(0.0, 0.0),
         ),
     )
 
@@ -91,7 +154,13 @@ class ObservationsCfg:
         # observation terms (order preserved)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
+        
         pose_command = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose"})
+        pose_command_2 = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose_2"})
+        pose_command_3 = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose_3"})
+        pose_command_4 = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose_4"})
+        pose_command_5 = ObsTerm(func=mdp.generated_commands, params={"command_name": "ee_pose_5"})
+
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
@@ -124,18 +193,80 @@ class RewardsCfg:
     end_effector_position_tracking = RewTerm(
         func=mdp.position_command_error,
         weight=-0.2,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names=MISSING), "command_name": "ee_pose"},
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_1"), "command_name": "ee_pose"},
     )
+    end_effector_2_position_tracking = RewTerm(
+        func=mdp.position_command_error,
+        weight=-0.2,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_2"), "command_name": "ee_pose_2"},
+    )
+    end_effector_3_position_tracking = RewTerm(
+        func=mdp.position_command_error,
+        weight=-0.2,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_3"), "command_name": "ee_pose_3"},
+    )
+    end_effector_4_position_tracking = RewTerm(
+        func=mdp.position_command_error,
+        weight=-0.2,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_4"), "command_name": "ee_pose_4"},
+    )
+    end_effector_5_position_tracking = RewTerm(
+        func=mdp.position_command_error,
+        weight=-0.2,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_5"), "command_name": "ee_pose_5"},
+    )
+
     end_effector_position_tracking_fine_grained = RewTerm(
         func=mdp.position_command_error_tanh,
         weight=0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names=MISSING), "std": 0.1, "command_name": "ee_pose"},
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_1"), "std": 0.1, "command_name": "ee_pose"},
     )
-    end_effector_orientation_tracking = RewTerm(
-        func=mdp.orientation_command_error,
-        weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names=MISSING), "command_name": "ee_pose"},
+    end_effector_2_position_tracking_fine_grained = RewTerm(
+        func=mdp.position_command_error_tanh,
+        weight=0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_2"), "std": 0.1, "command_name": "ee_pose_2"},
     )
+    end_effector_3_position_tracking_fine_grained = RewTerm(
+        func=mdp.position_command_error_tanh,
+        weight=0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_3"), "std": 0.1, "command_name": "ee_pose_3"},
+    )
+    end_effector_4_position_tracking_fine_grained = RewTerm(
+        func=mdp.position_command_error_tanh,
+        weight=0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_4"), "std": 0.1, "command_name": "ee_pose_4"},
+    )
+    end_effector_5_position_tracking_fine_grained = RewTerm(
+        func=mdp.position_command_error_tanh,
+        weight=0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_5"), "std": 0.1, "command_name": "ee_pose_5"},
+    )
+
+    # end_effector_orientation_tracking = RewTerm(
+    #     func=mdp.orientation_command_error,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_1"), "command_name": "ee_pose"},
+    # )
+    # end_effector_2_orientation_tracking = RewTerm(
+    #     func=mdp.orientation_command_error,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_2"), "command_name": "ee_pose_2"},
+    # )
+    # end_effector_3_orientation_tracking = RewTerm(
+    #     func=mdp.orientation_command_error,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_3"), "command_name": "ee_pose_3"},
+    # )
+    # end_effector_4_orientation_tracking = RewTerm(
+    #     func=mdp.orientation_command_error,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_4"), "command_name": "ee_pose_4"},
+    # )
+    # end_effector_5_orientation_tracking = RewTerm(
+    #     func=mdp.orientation_command_error,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names="TIP_B_5"), "command_name": "ee_pose_5"},
+    # )
 
     # action penalty
     action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.0001)

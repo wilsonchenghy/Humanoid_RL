@@ -6,7 +6,7 @@ from isaaclab.assets.articulation import ArticulationCfg
 
 HAND_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path="/home/hy/Downloads/Humanoid/ModelAssets/hand.usd",
+        usd_path="/home/hy/Downloads/Humanoid_Wato/ModelAssets/hand.usd",
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
             max_depenetration_velocity=5.0,
